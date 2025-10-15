@@ -1,14 +1,11 @@
-// Define a URL base da sua API Java.
-// Em um ambiente de produção, isso seria o endereço do seu servidor.
 const API_BASE_URL = 'https://how-did-you-do-it-api.onrender.com/api';
 
 const app = document.getElementById('app-content');
 const showdownConverter = new showdown.Converter();
 
-// --- FUNÇÕES DE RENDERIZAÇÃO (permanecem as mesmas, mas agora recebem dados da API) ---
+// --- FUNÇÕES DE RENDERIZAÇÃO ---
 
 function renderHomePage(projetos) {
-    // Esta função não precisa mudar, pois ela apenas renderiza os dados que recebe.
     const title = `
         <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Projetos da Comunidade</h1>
@@ -16,8 +13,8 @@ function renderHomePage(projetos) {
         </div>
     `;
     const projectList = projetos.map(p => {
-        // Para exibir o nome do autor, precisamos dos dados do objeto 'user' que virá da API
         const autorNome = p.user ? p.user.nomeExibicao : 'Usuário Desconhecido';
+        const autorUsername = p.user ? p.user.username : '#';
         const autorFoto = p.user ? p.user.fotoPerfil : 'https://placehold.co/100x100/CCCCCC/FFFFFF?text=?';
 
         return `
@@ -27,7 +24,7 @@ function renderHomePage(projetos) {
                 <h2 class="text-xl font-bold text-gray-900 mb-2">${p.titulo}</h2>
                 <p class="text-gray-600 mb-4 h-12">${p.descricaoCurta}</p>
                 <div class="flex items-center justify-between">
-                    <a href="#/perfil/${p.autorUsername}" class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-blue-600">
+                    <a href="#/perfil/${autorUsername}" class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                         <img src="${autorFoto}" alt="Avatar de ${autorNome}" class="w-8 h-8 rounded-full">
                         <span>${autorNome}</span>
                     </a>
@@ -80,7 +77,6 @@ function renderProjectPage(projeto) {
         </div>
     `;
 }
-// Outras funções de renderização (renderProfilePage, renderCreatePage, etc.) continuam aqui...
 
 function renderProfilePage(usuario, projetos) {
     const projetosOriginais = projetos.filter(p => !p.origemProjetoId);
@@ -135,32 +131,30 @@ function renderError(message) {
      return `<div class="text-center py-20">
         <h1 class="text-2xl font-bold text-red-600">Ocorreu um Erro</h1>
         <p class="text-gray-600 mt-4">${message}</p>
-        <a href="#" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-700 transition">Tentar Novamente</a>
+        <a href="#" onclick="location.reload()" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-700 transition">Tentar Novamente</a>
         </div>`;
 }
 
 // --- ROTEADOR e LÓGICA DE DADOS ---
 
-// Função genérica para fazer chamadas fetch
 async function apiFetch(endpoint) {
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`);
         if (!response.ok) {
-            throw new Error(`Erro na rede: ${response.statusText}`);
+            throw new Error(`Erro na rede: ${response.status} ${response.statusText}`);
         }
         return await response.json();
     } catch (error) {
         console.error("Falha ao buscar dados da API:", error);
         app.innerHTML = renderError(error.message);
-        return null; // Retorna nulo para interromper a execução
+        throw error; 
     }
 }
 
 async function router() {
     const path = location.hash.slice(1) || '/';
-    app.innerHTML = renderLoading(); // Mostra o loading imediatamente
+    app.innerHTML = renderLoading();
 
-    // Transição de fade-out
     app.classList.remove('fade-in');
     app.classList.add('fade-out');
     
@@ -169,31 +163,31 @@ async function router() {
     try {
         if (path === '/') {
             const projects = await apiFetch('/projects');
-            if (projects) newContent = renderHomePage(projects);
+            newContent = renderHomePage(projects);
         } else if (path.startsWith('/projeto/')) {
             const id = path.split('/')[2];
             const project = await apiFetch(`/projects/${id}`);
-            if (project) newContent = renderProjectPage(project);
+            newContent = renderProjectPage(project);
         } else if (path.startsWith('/perfil/')) {
             const username = path.split('/')[2];
-            // Fazemos duas chamadas em paralelo
             const [user, projects] = await Promise.all([
                 apiFetch(`/users/${username}`),
                 apiFetch(`/projects/author/${username}`)
             ]);
-            if (user && projects) newContent = renderProfilePage(user, projects);
+            newContent = renderProfilePage(user, projects);
         } else if (path === '/criar') {
             newContent = renderCreatePage();
         } else {
-            // Rota não encontrada
+             newContent = renderError("Página não encontrada.");
         }
     } catch (e) {
-        // O erro já foi tratado em apiFetch, mas garantimos
-        console.error(e);
-        newContent = renderError("Não foi possível carregar o conteúdo da página.");
+        // O erro já é tratado em apiFetch, aqui apenas garantimos.
+        console.error("Erro no roteador:", e);
+        if (!app.querySelector('.text-red-600')) {
+             newContent = renderError("Não foi possível carregar o conteúdo da página.");
+        }
     }
 
-    // Atraso para a transição de fade-in
     setTimeout(() => {
         app.innerHTML = newContent;
         app.classList.remove('fade-out');
@@ -206,5 +200,3 @@ async function router() {
 window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
 
-// A funcionalidade de busca também precisaria chamar a API.
-// Ex: GET /api/projects?search=query
