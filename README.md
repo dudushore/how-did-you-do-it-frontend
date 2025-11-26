@@ -23,7 +23,7 @@ The frontend automatically switches between the production API and local data to
 This repository contains the functional implementation (MVP) of the platform.
 Recently, I conducted a complete **UI/UX Redesign Case Study**, focusing on Dark Mode, user retention, and visual hierarchy.
 
-[![Redesign Preview](preview.jpg)](https://www.behance.net/gallery/239296791/How-Did-You-Do-It-UIUX-Redesign)
+[![Redesign Preview](preview.png)](https://www.behance.net/gallery/239296791/How-Did-You-Do-It-UIUX-Redesign)
 ---
 
 ### How to run locally
