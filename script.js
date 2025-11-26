@@ -1,3 +1,4 @@
+const USE_MOCK_DATA = true; // 'false' quando backend estiver pronto
 const API_BASE_URL = 'https://how-did-you-do-it-api.onrender.com/api';
 
 const app = document.getElementById('app-content');
@@ -135,9 +136,58 @@ function renderError(message) {
         </div>`;
 }
 
+// mockData.js
+const MOCK_DATA = {
+    '/projects': [
+        {
+            id: 1,
+            titulo: "Horta Vertical com Garrafas PET",
+            descricaoCurta: "Uma solução sustentável e barata para cultivar temperos em apartamentos.",
+            salvamentos: 23,
+            user: {
+                username: "beto.construtor",
+                nomeExibicao: "Beto Construtor",
+                fotoPerfil: "https://ui-avatars.com/api/?name=Beto+Construtor&background=random"
+            }
+        },
+        {
+            id: 2,
+            titulo: "Portfólio Pessoal com React",
+            descricaoCurta: "Guia passo a passo para construir um site moderno.",
+            salvamentos: 128,
+            user: {
+                username: "ana.dev",
+                nomeExibicao: "Ana Dev",
+                fotoPerfil: "https://ui-avatars.com/api/?name=Ana+Dev&background=random"
+            }
+        }
+        // Novos projetos aqui
+    ],
+    // Dados para endpoints necessários aqui
+};
+
 // --- ROTEADOR e LÓGICA DE DADOS ---
 
 async function apiFetch(endpoint) {
+    // 1. Se o modo Mock estiver ligado, retorna os dados locais imediatamente
+    if (USE_MOCK_DATA) {
+        console.log(`[MOCK MODE] Buscando dados para: ${endpoint}`);
+        
+        // Simula um pequeno delay de rede para parecer real (opcional)
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Retorna o dado correspondente do arquivo mockData.js ou um array vazio
+        // Precisamos tratar rotas dinâmicas simples
+        if (endpoint.startsWith('/projects') && !MOCK_DATA[endpoint]) {
+             // Lógica simples para pegar '/projects/1' se necessário, 
+             // ou apenas retorne a lista completa se for simplificado.
+             return MOCK_DATA['/projects'][0]; // Exemplo simplificado
+        }
+
+        return MOCK_DATA[endpoint] || [];
+    }
+
+    // 2. Se não, tenta bater na API Real
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`);
         if (!response.ok) {
@@ -146,6 +196,11 @@ async function apiFetch(endpoint) {
         return await response.json();
     } catch (error) {
         console.error("Falha ao buscar dados da API:", error);
+        
+        // BÔNUS: Se a API falhar, você pode cair para o Mock automaticamente!
+        console.warn("API offline. Usando dados de backup.");
+        // return MOCK_DATA[endpoint] || []; // Descomente se quiser fallback automático
+        
         app.innerHTML = renderError(error.message);
         throw error; 
     }
