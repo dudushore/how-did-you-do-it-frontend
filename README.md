@@ -1,36 +1,33 @@
 # How Did You Do It 🚀
 
-Uma plataforma comunitária para criadores documentarem e compartilharem o processo por trás de seus projetos.
+A community platform for creators to document and share the detailed process behind their projects.
 
-## 🛠 Tecnologias Utilizadas
+## 🛠 Tech Stack
 
-- **HTML5 Semântico**
-- **Tailwind CSS** (Estilização)
-- **JavaScript ES6+** (SPA Router, Consumo de API)
-- **Showdown.js** (Renderização de Markdown)
+- **HTML5 Semantic**
+- **Tailwind CSS** (Styling)
+- **JavaScript ES6+** (SPA Router, API Consumption)
+- **Showdown.js** (Markdown Rendering)
 
-## ⚡ Funcionalidade: Modo Demo (Offline)
+## ⚡ Feature: Demo Mode (Offline)
 
-Para garantir a melhor experiência de demonstração, este projeto implementa um sistema de **Mock Data**.
-O frontend alterna automaticamente entre a API de produção e dados locais para garantir performance instantânea durante a navegação.
+To ensure the best demonstration experience, this project implements a **Mock Data** system.
+The frontend automatically switches between the production API and local data to ensure instant performance during navigation.
 
-> A configuração pode ser alterada via constante `USE_MOCK_DATA` no arquivo `script.js`.
-
----
-
-## 🎨 UI/UX Redesign (Evolução do Projeto)
-
-Este repositório contém a implementação funcional (MVP) da plataforma.
-Recentemente, realizei um **estudo de caso completo de Redesign**, focando em Dark Mode, melhoria da retenção e hierarquia visual.
-
-**[👉 Veja o Estudo de Caso Visual e o Novo Design no meu Behance](SEU_LINK_DO_BEHANCE_AQUI)**
-
-![Preview do Redesign](LINK_DA_IMAGEM_DO_FIGMA_AQUI)
+> Configuration can be toggled via the `USE_MOCK_DATA` constant in `script.js`.
 
 ---
 
-### Como rodar localmente
+## 🎨 UI/UX Redesign (Project Evolution)
 
-1. Clone o repositório
-2. Abra o arquivo `index.html` no seu navegador.
-3. O projeto carregará automaticamente com os dados de demonstração.
+This repository contains the functional implementation (MVP) of the platform.
+Recently, I conducted a complete **UI/UX Redesign Case Study**, focusing on Dark Mode, user retention, and visual hierarchy.
+
+[![Redesign Preview](preview.jpg)](https://www.behance.net/gallery/239296791/How-Did-You-Do-It-UIUX-Redesign)
+---
+
+### How to run locally
+
+1. Clone the repository.
+2. Open the `index.html` file in your browser.
+3. The project will load automatically with demo data.
