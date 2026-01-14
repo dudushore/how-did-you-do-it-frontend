@@ -23,7 +23,7 @@ function renderHomePage(projetos) {
             <div class="p-6">
                 ${p.origemProjetoId ? `<p class="text-sm text-gray-500 mb-2">Reinterpretação de um projeto.</p>` : ''}
                 <h2 class="text-xl font-bold text-gray-900 mb-2">${p.titulo}</h2>
-                <p class="text-gray-600 mb-4 h-12">${p.descricaoCurta}</p>
+                <p class="text-gray-600 mb-4 h-12 overflow-hidden text-ellipsis">${p.descricaoCurta}</p>
                 <div class="flex items-center justify-between">
                     <a href="#/perfil/${autorUsername}" class="flex items-center space-x-2 text-sm font-medium text-gray-700 hover:text-blue-600">
                         <img src="${autorFoto}" alt="Avatar de ${autorNome}" class="w-8 h-8 rounded-full">
@@ -45,8 +45,30 @@ function renderHomePage(projetos) {
 }
 
 function renderProjectPage(projeto) {
+    if (!projeto || !projeto.user) return renderError("Projeto não encontrado ou incompleto.");
+
     const autor = projeto.user;
-    const historiaHtml = showdownConverter.makeHtml(projeto.historia);
+    // Fallback para história vazia se necessário
+    const historiaPlaceholder = `
+## Sobre o Projeto
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+### Materiais Necessários
+
+- Item 1: Lorem ipsum dolor
+- Item 2: Consectetur adipiscing
+- Item 3: Sed do eiusmod tempor
+
+### Passo a Passo
+
+1. **Planejamento**: Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.
+2. **Execução**: Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+3. **Finalização**: Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
+
+> "A criatividade é a inteligência se divertindo." - Albert Einstein
+    `;
+    const historiaHtml = showdownConverter.makeHtml(projeto.historia || historiaPlaceholder);
     
     return `
         <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 sm:p-8">
@@ -74,12 +96,16 @@ function renderProjectPage(projeto) {
                     </button>
                 </div>
             </div>
-            <div class="markdown-content mt-6">${historiaHtml}</div>
+            <div class="markdown-content mt-6 prose prose-blue max-w-none">
+                ${historiaHtml}
+            </div>
         </div>
     `;
 }
 
 function renderProfilePage(usuario, projetos) {
+    if (!usuario || Array.isArray(usuario) && usuario.length === 0) return renderError("Usuário não encontrado.");
+
     const projetosOriginais = projetos.filter(p => !p.origemProjetoId);
     const reinterpretacoes = projetos.filter(p => p.origemProjetoId);
     
@@ -88,7 +114,7 @@ function renderProfilePage(usuario, projetos) {
         return `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">${projs.map(p => `
              <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                  <a href="#/projeto/${p.id}" class="text-lg font-bold text-blue-600 hover:underline">${p.titulo}</a>
-                 <p class="text-sm text-gray-600 mt-1">${p.descricaoCurta}</p>
+                 <p class="text-sm text-gray-600 mt-1 h-10 overflow-hidden text-ellipsis">${p.descricaoCurta}</p>
              </div>
         `).join('')}</div>`;
     };
@@ -96,10 +122,10 @@ function renderProfilePage(usuario, projetos) {
     return `
         <div class="flex flex-col md:flex-row items-start gap-8">
             <div class="w-full md:w-1/4 text-center">
-                <img src="${usuario.fotoPerfil}" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg">
+                <img src="${usuario.fotoPerfil}" class="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg object-cover">
                 <h1 class="text-3xl font-bold">${usuario.nomeExibicao}</h1>
                 <p class="text-gray-500 mb-2">@${usuario.username}</p>
-                <p class="text-gray-700">${usuario.bio}</p>
+                <p class="text-gray-700">${usuario.bio || "Sem biografia."}</p>
             </div>
             <div class="w-full md:w-3/4">
                 <div>
@@ -132,7 +158,7 @@ function renderError(message) {
      return `<div class="text-center py-20">
         <h1 class="text-2xl font-bold text-red-600">Ocorreu um Erro</h1>
         <p class="text-gray-600 mt-4">${message}</p>
-        <a href="#" onclick="location.reload()" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-700 transition">Tentar Novamente</a>
+        <a href="#/" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-2 px-6 rounded-md hover:bg-blue-700 transition">Voltar ao Início</a>
         </div>`;
 }
 
@@ -147,8 +173,29 @@ const MOCK_DATA = {
             user: {
                 username: "beto.construtor",
                 nomeExibicao: "Beto Construtor",
-                fotoPerfil: "https://ui-avatars.com/api/?name=Beto+Construtor&background=random"
-            }
+                fotoPerfil: "https://ui-avatars.com/api/?name=Beto+Construtor&background=0D8ABC&color=fff"
+            },
+            historia: `
+## A Ideia
+
+Sempre quis ter uma horta, mas morando em apartamento o espaço é limitado. Olhando para algumas garrafas PET que iriam para o lixo, tive uma ideia.
+
+### Materiais
+
+- 5 Garrafas PET de 2L
+- Tesoura e fio de arame
+- Terra adubada
+- Sementes de manjericão, salsa e cebolinha
+
+### Como Fiz
+
+1. **Preparação das Garrafas**: Lavei bem e fiz cortes retangulares na lateral.
+2. **Sistema de Drenagem**: Fiz furos na tampa e no fundo para a água escorrer de uma para outra.
+3. **Montagem**: Prendi as garrafas umas às outras com arame, formando uma "coluna".
+4. **Plantio**: Coloquei a terra e as sementes.
+
+O resultado foi incrível e em 3 semanas já tinha brotos!
+            `
         },
         {
             id: 2,
@@ -158,36 +205,72 @@ const MOCK_DATA = {
             user: {
                 username: "ana.dev",
                 nomeExibicao: "Ana Dev",
+                bio: "Desenvolvedora Frontend apaixonada por UI/UX.",
                 fotoPerfil: "https://ui-avatars.com/api/?name=Ana+Dev&background=random"
-            }
+            },
+            historia: `
+## Construindo meu Espaço na Web
+
+Como dev, ter um portfólio é essencial. Decidi usar React para mostrar minhas habilidades.
+
+### Tech Stack
+
+- **React**: Biblioteca principal
+- **Tailwind CSS**: Para estilização rápida
+- **Framer Motion**: Animações
+
+### Etapas do Desenvolvimento
+
+1. **Design no Figma**: Criei o layout antes de codar.
+2. **Estrutura de Componentes**: Header, Hero, Projects, Contact.
+3. **Responsividade**: Garantindo que funcione no celular.
+
+Agora consigo mostrar meus trabalhos de forma profissional!
+            `
         }
-        // Novos projetos aqui
-    ],
-    // Dados para endpoints necessários aqui
+    ]
 };
 
 // --- ROTEADOR e LÓGICA DE DADOS ---
 
 async function apiFetch(endpoint) {
-    // 1. Se o modo Mock estiver ligado, retorna os dados locais imediatamente
     if (USE_MOCK_DATA) {
         console.log(`[MOCK MODE] Buscando dados para: ${endpoint}`);
-        
-        // Simula um pequeno delay de rede para parecer real (opcional)
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Retorna o dado correspondente do arquivo mockData.js ou um array vazio
-        // Precisamos tratar rotas dinâmicas simples
-        if (endpoint.startsWith('/projects') && !MOCK_DATA[endpoint]) {
-             // Lógica simples para pegar '/projects/1' se necessário, 
-             // ou apenas retorne a lista completa se for simplificado.
-             return MOCK_DATA['/projects'][0]; // Exemplo simplificado
+        // Rota: /projects
+        if (endpoint === '/projects') {
+            return MOCK_DATA['/projects'];
         }
 
-        return MOCK_DATA[endpoint] || [];
+        // Rota: /projects/:id (Ex: /projects/1)
+        const projectMatch = endpoint.match(/^\/projects\/(\d+)$/);
+        if (projectMatch) {
+            const id = parseInt(projectMatch[1]);
+            const projeto = MOCK_DATA['/projects'].find(p => p.id === id);
+            return projeto || null;
+        }
+
+        // Rota: /users/:username
+        const userMatch = endpoint.match(/^\/users\/(.+)$/);
+        if (userMatch) {
+            const username = userMatch[1];
+            // Procura o usuário dentro dos projetos (simulação de "banco de dados" relacional flat)
+            const projetoComAutor = MOCK_DATA['/projects'].find(p => p.user.username === username);
+            return projetoComAutor ? projetoComAutor.user : null;
+        }
+
+        // Rota: /projects/author/:username
+        const authorProjectsMatch = endpoint.match(/^\/projects\/author\/(.+)$/);
+        if (authorProjectsMatch) {
+            const username = authorProjectsMatch[1];
+            return MOCK_DATA['/projects'].filter(p => p.user.username === username);
+        }
+
+        // Default: tenta pegar direto do objeto MOCK_DATA (para casos estáticos futuros)
+        return MOCK_DATA[endpoint] || null;
     }
 
-    // 2. Se não, tenta bater na API Real
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`);
         if (!response.ok) {
@@ -196,11 +279,7 @@ async function apiFetch(endpoint) {
         return await response.json();
     } catch (error) {
         console.error("Falha ao buscar dados da API:", error);
-        
-        // BÔNUS: Se a API falhar, você pode cair para o Mock automaticamente!
-        console.warn("API offline. Usando dados de backup.");
-        // return MOCK_DATA[endpoint] || []; // Descomente se quiser fallback automático
-        
+         console.warn("API offline. Usando dados de backup.");
         app.innerHTML = renderError(error.message);
         throw error; 
     }
@@ -218,28 +297,35 @@ async function router() {
     try {
         if (path === '/') {
             const projects = await apiFetch('/projects');
-            newContent = renderHomePage(projects);
+            newContent = renderHomePage(projects || []);
         } else if (path.startsWith('/projeto/')) {
             const id = path.split('/')[2];
             const project = await apiFetch(`/projects/${id}`);
-            newContent = renderProjectPage(project);
+            if (project) {
+                newContent = renderProjectPage(project);
+            } else {
+                 newContent = renderError("Projeto não encontrado.");
+            }
         } else if (path.startsWith('/perfil/')) {
             const username = path.split('/')[2];
-            const [user, projects] = await Promise.all([
-                apiFetch(`/users/${username}`),
-                apiFetch(`/projects/author/${username}`)
-            ]);
-            newContent = renderProfilePage(user, projects);
+            try {
+                const [user, projects] = await Promise.all([
+                    apiFetch(`/users/${username}`),
+                    apiFetch(`/projects/author/${username}`)
+                ]);
+                newContent = renderProfilePage(user, projects || []);
+            } catch (err) {
+                 newContent = renderError("Não foi possível carregar o perfil.");
+            }
         } else if (path === '/criar') {
             newContent = renderCreatePage();
         } else {
              newContent = renderError("Página não encontrada.");
         }
     } catch (e) {
-        // O erro já é tratado em apiFetch, aqui apenas garantimos.
         console.error("Erro no roteador:", e);
         if (!app.querySelector('.text-red-600')) {
-             newContent = renderError("Não foi possível carregar o conteúdo da página.");
+             newContent = renderError("Algo deu errado ao carregar a página.");
         }
     }
 
@@ -254,4 +340,3 @@ async function router() {
 // --- INICIALIZAÇÃO ---
 window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
-
